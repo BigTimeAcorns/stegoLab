@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.util.ArrayList;
 
 public class Steganography{
     public static void clearLow(Pixel p) 
@@ -71,24 +72,77 @@ public class Steganography{
     }
 
     public static boolean canHide(Picture source, Picture secret) {
-        return ((secret.getWidth() == source.getWidth() && secret.getHeight() == source.getHeight()));
+        return ((secret.getWidth() <= source.getWidth() && secret.getHeight() <= source.getHeight()));
     }
 
     public static Picture hidePicture(Picture source, Picture secret) {
          Picture copy = new Picture(source);
         
         if(canHide(source, secret)) {
-            Pixel[][] pixelArraySource = source.getPixels2D();
+            Pixel[][] pixelArrayCopy = copy.getPixels2D();
             Pixel[][] pixelArraySecret = secret.getPixels2D();
 
             for(int i = 0; i < copy.getWidth()-1; i++) {
                 for(int j = 0; j < copy.getHeight()-1; j++) {
-                    setLow(pixelArraySource[j][i], pixelArraySecret[j][i].getColor());
+                    setLow(pixelArrayCopy[j][i], pixelArraySecret[j][i].getColor());
                 }
             }
         }
         return copy;
     }
+
+    public static Picture hidePicture(Picture source, Picture secret, int startRow, int startColumn) {
+         Picture copy = new Picture(source);
+        
+        if(canHide(source, secret)) {
+            Pixel[][] pixelArrayCopy = copy.getPixels2D();
+            Pixel[][] pixelArraySecret = secret.getPixels2D();
+
+            for(int i = startColumn; i < copy.getWidth()-1; i++) {
+                for(int j = startRow; j < copy.getHeight()-1; j++) {
+                    setLow(pixelArrayCopy[j][i], pixelArraySecret[j][i].getColor());
+                }
+            }
+        }
+        return copy;
+    }
+
+    public static boolean isSame(Picture pic1, Picture pic2) {
+        return (pic1.equals(pic2));
+    }
+
+    public static ArrayList<Integer> findDifferences(Picture pic1, Picture pic2) {
+        ArrayList<Integer> list = new ArrayList<Integer>();
+        
+        if(!(pic1.getWidth() != pic2.getWidth() || pic1.getHeight() != pic2.getHeight())) {
+            Pixel[][] pixelArrayPic1 = pic1.getPixels2D();
+            Pixel[][] pixelArrayPic2 = pic2.getPixels2D();
+
+            for(int i = 0; i < pic1.getWidth()-1; i++) {
+                for(int j = 0; j < pic1.getHeight()-1; j++) {
+                    if (pixelArrayPic1[j][i].getColor().equals(pixelArrayPic2[j][i].getColor())) {
+                        list.add(i);
+                        list.add(j);
+                    }
+                }
+            } 
+        } 
+        return list;
+    }
+
+    public static Picture showDifferentArea(Picture p, ArrayList<Integer> list) {
+        Picture pic = new Picture(p);
+        Pixel[][] pixelArray = pic.getPixels2D();
+        
+        for(int i = 0; i < list.size(); i += 2) {
+            for(int j = 1; j < list.size()+1; j += 2) {
+                pixelArray[list.get(j)][list.get(i)].setColor(Color.PINK);
+            }
+        }
+        return pic;
+    }
+        
+        
        
 
 
@@ -100,10 +154,8 @@ public class Steganography{
         Picture otherPic = new Picture("blueMotorcycle.jpg");
         otherPic.setTitle("otherPic");
         otherPic.explore();
-        
-        System.out.println(canHide(waterPic, otherPic));
-
-        Picture fixPic = hidePicture(waterPic, otherPic);
+    
+        Picture fixPic = hidePicture(waterPic, otherPic, 100, 100);
         fixPic.setTitle("fixPic");
         fixPic.explore();
     
